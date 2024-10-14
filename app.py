@@ -30,6 +30,13 @@ def differenzZwischenZweiPunkten(lat1,lon1,lat2,lon2):
     distance = R * c
     return distance
 
+def printCompleteData(indexList):
+    sicherheitsIndex = []
+    for index, row in haltestellen.iterrows():
+        sicherheitsIndex.append({"name": row[0], "latitude": row[1], "longitude": row[2], "count": indexList[index]})
+    print(json.JSONEncoder().encode(sicherheitsIndex))
+
+
 haltestellen = pd.read_excel("data/HVV-Haltestellen.xlsx", header = 0)
 
 
@@ -54,4 +61,5 @@ for index, row in haltestellen.iterrows():
     indexList.append(anzahlMeldungen)
     print("durchlaufe Haltestellen - index: ", index, " row: ", row[0])
 
-print(indexList)
+# print(indexList)
+printCompleteData(indexList)
