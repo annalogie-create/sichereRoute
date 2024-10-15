@@ -96,7 +96,7 @@ for index, row in haltestellen.iterrows():
     lon = row[1]
     print("haltestelle: ",row[0]," lat: ", lat, ", lon: ", lon)
     anzahlMeldungen = getAnzahlMeldungen(lat, lon)
-    numberOfGruenflaechen = fetch_osm_data(lat, lon, 10)
+    numberOfGruenflaechen = fetch_osm_data(lat, lon, 15)
     indexList.append(anzahlMeldungen)
     
 # print(indexList)
