@@ -4,31 +4,38 @@ import math
 import requests
 
 def fetch_osm_data(lat, lon, radius):
-    print("Start")
     # Define the Overpass API endpoint
     overpass_url = "http://overpass-api.de/api/interpreter"
     
-    # Define the Overpass QL query
+# Define the Overpass QL query
     overpass_query = f"""
     [out:json];
     (
-      node(around:{radius},{lat},{lon})["leisure"="park", "natural"="scrub"];
+      node(around:{radius},{lat},{lon})["leisure"="park"];
+      node(around:{radius},{lat},{lon})["natural"="wood"];
+      node(around:{radius},{lat},{lon})["natural"="scrub"];
+      way(around:{radius},{lat},{lon})["leisure"="park"];
+      way(around:{radius},{lat},{lon})["natural"="wood"];
+      way(around:{radius},{lat},{lon})["natural"="scrub"];
     );
     out body;
     """
+
+    #way(around:{radius},{lat},{lon})["landuse"="grass"];
     
     # Send the request to the Overpass API
     response = requests.post(overpass_url, data=overpass_query)
-    print("response: ", response)
     
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
-        print(data)
-        return data
+        if(data['elements']):
+            print(len(data['elements']))
+            return len(data['elements'])
+        return 0
     else:
         print("Error:", response.status_code)
-        return None
+        return 0
 
 filter = [
     "Straßenbeleuchtung ausgefallen",
@@ -85,11 +92,12 @@ with open("data/anliegen_extern.json", 'r', encoding='utf-8') as datei:
     indexList = []
 
 for index, row in haltestellen.iterrows(): 
-    lat = row[1]
-    lon = row[2]
-    anzahlMeldungen = getAnzahlMeldungen(lat, lon, 10)
+    lat = row[2]
+    lon = row[1]
+    print("haltestelle: ",row[0]," lat: ", lat, ", lon: ", lon)
+    anzahlMeldungen = getAnzahlMeldungen(lat, lon)
+    numberOfGruenflaechen = fetch_osm_data(lat, lon, 10)
     indexList.append(anzahlMeldungen)
-    print("durchlaufe Haltestellen - index: ", index, " row: ", row[0])
-
+    
 # print(indexList)
 printCompleteData(indexList)
