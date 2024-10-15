@@ -2,6 +2,21 @@ import pandas as pd
 import json
 import math
 
+filter = [
+    "Straßenbeleuchtung ausgefallen",
+    "Gewässerverunreinigung",
+    "Beschädigte Brücke, Tunnel, Mauer, Treppe",
+    "Beschädigtes Verkehrszeichen",
+    "Ampel gestört",
+    "Straßenbeleuchtung gestört",
+    "Beschädigter Stromkasten",
+    "Verunreinigung und Vandalismus",
+    "Beschädigte Geländer, Poller, Fahrradständer, Sitzgelegenheit",
+]
+
+def inFilter(feature):
+    return feature["properties"]["skat_text"] in filter
+
 def differenzZwischenZweiPunkten(lat1,lon1,lat2,lon2):
     R = 6371000
     phi1 = math.radians(lat1)
@@ -15,19 +30,26 @@ def differenzZwischenZweiPunkten(lat1,lon1,lat2,lon2):
     distance = R * c
     return distance
 
+def printCompleteData(indexList):
+    sicherheitsIndex = []
+    for index, row in haltestellen.iterrows():
+        sicherheitsIndex.append({"name": row[0], "latitude": row[1], "longitude": row[2], "count": indexList[index]})
+    print(json.JSONEncoder().encode(sicherheitsIndex))
+
+
 haltestellen = pd.read_excel("data/HVV-Haltestellen.xlsx", header = 0)
 
 
 with open("data/anliegen_extern.json", 'r', encoding='utf-8') as datei:
     meldungen = json.load(datei)
-
+    features = [feature for feature in meldungen['features'] if inFilter(feature)]
     indexList = []
 
 for index, row in haltestellen.iterrows(): 
     lat1 = row[1]
     lon1 = row[2]
     anzahlMeldungen= 0
-    for i in range(len(meldungen['features'])): 
+    for i in range(len(features)): 
         coordinates = meldungen['features'][i]['geometry']['coordinates']
         #print(coordinates)
         lat2= coordinates[0]
@@ -37,6 +59,7 @@ for index, row in haltestellen.iterrows():
             anzahlMeldungen += 1
         i += 1
     indexList.append(anzahlMeldungen)
-    print("bin dabei, index ", index, " row: ", row)
+    print("durchlaufe Haltestellen - index: ", index, " row: ", row[0])
 
-print(indexList)
+# print(indexList)
+printCompleteData(indexList)
