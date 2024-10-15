@@ -113,16 +113,21 @@ haltestellen = pd.read_excel("data/HVV-Haltestellen.xlsx", header = 0)
 with open("data/anliegen_extern.json", 'r', encoding='utf-8') as datei:
     meldungen = json.load(datei)
     features = [feature for feature in meldungen['features'] if inFilter(feature)]
-    indexList = []
+    meldungenList = []
+    gruenflaechenList = []
 
 for index, row in haltestellen.iterrows(): 
     lat = row[2]
     lon = row[1]
     print("haltestelle: ",row[0]," lat: ", lat, ", lon: ", lon)
     anzahlMeldungen = getAnzahlMeldungen(lat, lon)
-    numberOfGruenflaechen = fetch_osm_data(lat, lon, 15)
-    indexList.append(anzahlMeldungen)
-    
-normalizedIndexList = min_max_normalization(indexList)
+    gruenflaechenList.append(fetch_osm_data(lat, lon, 15))
 
-printCompleteData(normalizedIndexList, haltestellen)
+    meldungenList.append(anzahlMeldungen)
+    
+normalizedMeldungenList = min_max_normalization(meldungenList)
+normalizedGruenflaechenList = min_max_normalization(gruenflaechenList)
+
+indexList = 0.4 * normalizedGruenflaechenList + 0.6 * normalizedMeldungenList
+
+printCompleteData(indexList, haltestellen)
