@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import math
+import numpy as np
 
 filter = [
     "Straßenbeleuchtung ausgefallen",
@@ -30,11 +31,34 @@ def differenzZwischenZweiPunkten(lat1,lon1,lat2,lon2):
     distance = R * c
     return distance
 
-def printCompleteData(indexList):
-    sicherheitsIndex = []
-    for index, row in haltestellen.iterrows():
-        sicherheitsIndex.append({"name": row[0], "latitude": row[1], "longitude": row[2], "count": indexList[index]})
-    print(json.JSONEncoder().encode(sicherheitsIndex))
+
+
+def printCompleteData(indexList, haltestellen):
+    haltestellenMitSicherheitsindex = haltestellen
+    haltestellenMitSicherheitsindex['index'] = indexList
+    haltestellenMitSicherheitsindex.to_csv('out.csv')
+
+def min_max_normalization(data):
+    """
+    Perform min-max normalization on the given data.
+    
+    Parameters:
+    data (list or np.ndarray): The input data to be normalized.
+    
+    Returns:
+    np.ndarray: Normalized data in the range [0, 1].
+    """
+    data = np.array(data)
+    min_val = np.min(data)
+    max_val = np.max(data)
+    
+    # Avoid division by zero
+    if max_val - min_val == 0:
+        return np.zeros_like(data)  # or return data directly if you prefer
+
+    normalized_data = (data - min_val) / (max_val - min_val)
+    return normalized_data
+
 
 
 haltestellen = pd.read_excel("data/HVV-Haltestellen.xlsx", header = 0)
@@ -61,5 +85,6 @@ for index, row in haltestellen.iterrows():
     indexList.append(anzahlMeldungen)
     print("durchlaufe Haltestellen - index: ", index, " row: ", row[0])
 
-# print(indexList)
-printCompleteData(indexList)
+normalizedIndexList = min_max_normalization(indexList)
+
+printCompleteData(normalizedIndexList, haltestellen)
